@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: lab_asset_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - lab_asset_network
+
+  backend-node:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    container_name: lab_asset_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend-node/.env
+    depends_on:
+      - mongodb
+    networks:
+      - lab_asset_network
+    volumes:
+      - ./backend-node:/app
+      - /app/node_modules
+
+  frontend-laravel:
+    build:
+      context: ./frontend-laravel
+      dockerfile: Dockerfile
+    container_name: lab_asset_frontend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./frontend-laravel/.env
+    depends_on:
+      - backend-node
+    networks:
+      - lab_asset_network
+    volumes:
+      - ./frontend-laravel:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+volumes:
+  mongodb_data:
+
+networks:
+  lab_asset_network:
+    driver: bridge
