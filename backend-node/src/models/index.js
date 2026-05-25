@@ -1,9 +1,9 @@
 /**
  * Models Index
- * 
- * File ini mengekspor semua model Mongoose dalam satu titik akses.
- * Gunakan impor dari file ini untuk mengakses model di controller/service.
- * 
+ *
+ * File ini mengekspor semua model data (BaseModel) dalam satu titik akses.
+ * Untuk business logic / agregasi, lihat src/services/.
+ *
  * Contoh penggunaan:
  *   const { User, Inventory, Consumable } = require('../models');
  */
