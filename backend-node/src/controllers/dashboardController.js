@@ -1,8 +1,8 @@
-const Dashboard = require('../models/Dashboard');
+const DashboardService = require('../services/DashboardService');
 
 exports.show = async (req, res, next) => {
   try {
-    return res.json(await Dashboard.forUser(req.user));
+    return res.json(await DashboardService.forUser(req.user));
   } catch (error) {
     return next(error);
   }
