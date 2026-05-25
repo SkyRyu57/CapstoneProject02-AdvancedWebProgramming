@@ -1,107 +1,61 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const BaseModel = require('./BaseModel');
+const { roleLabels } = require('../config/roles');
 
-/**
- * User Schema
- * Merepresentasikan pengguna sistem manajemen aset laboratorium.
- * Role yang tersedia:
- *  - admin         : Administrator sistem
- *  - kepala_lab    : Kepala laboratorium (berwenang membuat draft pengadaan)
- *  - kaprodi       : Ketua program studi (mereview/menyetujui pengadaan)
- *  - staf_admin    : Staf administrasi (menerima barang pengadaan)
- *  - staf_lab      : Staf laboratorium (melakukan maintenance, piket)
- */
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Nama wajib diisi'],
-      trim: true,
-      maxlength: [100, 'Nama tidak boleh lebih dari 100 karakter'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email wajib diisi'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Format email tidak valid'],
-    },
-    password: {
-      type: String,
-      required: [true, 'Password wajib diisi'],
-      minlength: [6, 'Password minimal 6 karakter'],
-      select: false, // Tidak dikembalikan secara default pada query
-    },
-    role: {
-      type: String,
-      required: [true, 'Role wajib diisi'],
-      enum: {
-        values: ['admin', 'kepala_lab', 'kaprodi', 'staf_admin', 'staf_lab'],
-        message: 'Role tidak valid. Pilih: admin, kepala_lab, kaprodi, staf_admin, staf_lab',
-      },
-      default: 'staf_lab',
-    },
-  },
-  {
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
-    versionKey: false,
+class User extends BaseModel {
+  static get collectionName() {
+    return 'users';
   }
-);
 
-// --- Indexes ---
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ role: 1 });
-
-// --- Middleware (Hooks) ---
-
-/**
- * Hash password sebelum disimpan ke database.
- * Hanya dijalankan jika field password diubah.
- */
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  try {
-    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS, 10) || 12;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-    next();
-  } catch (err) {
-    next(err);
+  static normalizeEmail(email) {
+    return String(email || '').trim().toLowerCase();
   }
-});
 
-// --- Instance Methods ---
+  static findByEmail(email) {
+    return this.findOne({ email: this.normalizeEmail(email) });
+  }
 
-/**
- * Membandingkan password yang diberikan dengan hash yang tersimpan.
- * @param {string} candidatePassword - Password plain text yang akan diverifikasi
- * @returns {Promise<boolean>}
- */
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+  static findPublicById(id) {
+    return this.findOne({ _id: id }, { projection: { password: 0 } });
+  }
 
-/**
- * Mengembalikan representasi user tanpa field sensitif.
- * @returns {Object}
- */
-userSchema.methods.toPublicJSON = function () {
-  const obj = this.toObject();
-  delete obj.password;
-  return obj;
-};
+  static listPublic(limit = 5) {
+    return this.findMany({}, {
+      projection: { password: 0 },
+      sort: { _id: 1 },
+      limit,
+    });
+  }
 
-// --- Static Methods ---
+  static async passwordMatches(inputPassword, storedPassword) {
+    if (!storedPassword) {
+      return false;
+    }
 
-/**
- * Mencari user berdasarkan email dan menyertakan field password (untuk autentikasi).
- * @param {string} email
- * @returns {Promise<User|null>}
- */
-userSchema.statics.findByEmailWithPassword = function (email) {
-  return this.findOne({ email: email.toLowerCase() }).select('+password');
-};
+    if (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2y$')) {
+      return bcrypt.compare(inputPassword, storedPassword);
+    }
 
-const User = mongoose.model('User', userSchema);
+    return inputPassword === storedPassword;
+  }
+
+  static toPublic(user) {
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      role_label: roleLabels[user.role] || user.role,
+    };
+  }
+
+  static toAccountHint(user) {
+    return {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+  }
+}
 
 module.exports = User;

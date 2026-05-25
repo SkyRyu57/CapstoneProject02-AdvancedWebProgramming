@@ -1,50 +1,36 @@
-const express = require('express');
+require('dotenv').config();
+
 const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/database');
-
-// Load environment variables
-dotenv.config();
-
-// Import semua model agar Mongoose mendaftarkan semua schema
-require('./models');
+const express = require('express');
+const authController = require('./controllers/authController');
+const dashboardController = require('./controllers/dashboardController');
+const authenticate = require('./middleware/authenticate');
 
 const app = express();
 
-// --- Middleware ---
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:8000',
+  origin: process.env.CORS_ORIGIN || 'http://127.0.0.1:8000',
   credentials: true,
 }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// --- Koneksi Database ---
-connectDB();
-
-// --- Health Check Route ---
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Lab Asset Management API berjalan',
-    timestamp: new Date().toISOString(),
-  });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', service: 'lab-asset-api' });
 });
 
-// --- 404 Handler ---
+app.post('/api/auth/login', authController.login);
+app.post('/api/auth/forgot-account', authController.forgotAccount);
+app.get('/api/auth/me', authenticate, authController.me);
+app.get('/api/dashboard', authenticate, dashboardController.show);
+
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.method} ${req.originalUrl} tidak ditemukan`,
-  });
+  res.status(404).json({ message: 'Endpoint tidak ditemukan.' });
 });
 
-// --- Global Error Handler ---
-app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Terjadi kesalahan pada server',
+app.use((error, req, res, next) => {
+  console.error(error);
+  res.status(error.status || 500).json({
+    message: error.message || 'Terjadi kesalahan pada server.',
   });
 });
 
