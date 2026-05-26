@@ -13,11 +13,19 @@ class ProcurementDraftItem extends BaseModel {
     return this.findMany({ draft_id: { $in: draftIds } });
   }
 
-  static listApproved(limit = 6) {
+  static listApproved(limit = 100) {
     return this.findMany(
       { approval_status: 'approved' },
       { sort: { _id: -1 }, limit },
     );
+  }
+
+  static findById(id) {
+    return this.findOne({ _id: Number(id) });
+  }
+
+  static review(id, approvalStatus) {
+    return this.updateById(id, { approval_status: approvalStatus });
   }
 }
 

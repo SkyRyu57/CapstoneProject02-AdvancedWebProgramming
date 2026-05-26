@@ -16,15 +16,54 @@ class User extends BaseModel {
   }
 
   static findPublicById(id) {
-    return this.findOne({ _id: id }, { projection: { password: 0 } });
+    return this.findOne({ _id: Number(id) }, { projection: { password: 0 } });
   }
 
-  static listPublic(limit = 5) {
+  static listPublic(limit = 100) {
     return this.findMany({}, {
       projection: { password: 0 },
       sort: { _id: 1 },
       limit,
     });
+  }
+
+  static async createAccount(data) {
+    const password = data.password.startsWith('$2')
+      ? data.password
+      : await bcrypt.hash(data.password, 10);
+
+    const user = await this.create({
+      name: data.name,
+      email: this.normalizeEmail(data.email),
+      password,
+      role: data.role,
+    });
+
+    return this.toPublic(user);
+  }
+
+  static async updateAccount(id, data) {
+    const payload = {
+      name: data.name,
+      email: this.normalizeEmail(data.email),
+      role: data.role,
+    };
+
+    if (data.password) {
+      payload.password = await bcrypt.hash(data.password, 10);
+    }
+
+    const user = await this.updateById(id, payload);
+
+    if (!user) {
+      return null;
+    }
+
+    return this.toPublic(user);
+  }
+
+  static deleteAccount(id) {
+    return this.deleteById(id);
   }
 
   static async passwordMatches(inputPassword, storedPassword) {

@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Kaprodi\ProcurementReviewController;
+use App\Http\Controllers\StafAdmin\ApprovedDraftController;
+use App\Http\Controllers\StafAdmin\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,4 +22,31 @@ Route::get('/forgot-account', [AuthController::class, 'showForgotAccount'])->nam
 Route::post('/forgot-account', [AuthController::class, 'forgotAccount'])->name('forgot-account.store');
 
 Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
+    Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
+    Route::patch('/rooms/{id}', [RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/rooms/{id}', [RoomController::class, 'destroy'])->name('rooms.destroy');
+});
+
+Route::prefix('kaprodi')->name('kaprodi.')->group(function () {
+    Route::get('/procurement-drafts', [ProcurementReviewController::class, 'index'])->name('drafts.index');
+    Route::get('/procurement-drafts/{id}', [ProcurementReviewController::class, 'show'])->name('drafts.show');
+    Route::patch('/procurement-drafts/{draftId}/items/{itemId}/review', [ProcurementReviewController::class, 'reviewItem'])->name('drafts.items.review');
+    Route::patch('/procurement-drafts/{draftId}/finalize', [ProcurementReviewController::class, 'finalize'])->name('drafts.finalize');
+});
+
+Route::prefix('staf-admin')->name('staf-admin.')->group(function () {
+    Route::get('/approved-drafts', [ApprovedDraftController::class, 'index'])->name('approved-drafts.index');
+    Route::post('/receipts', [ApprovedDraftController::class, 'storeReceipt'])->name('receipts.store');
+    Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');
+    Route::patch('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
+    Route::delete('/inventories/{id}', [InventoryController::class, 'destroy'])->name('inventories.destroy');
+});
+
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

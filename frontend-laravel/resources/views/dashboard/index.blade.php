@@ -7,16 +7,7 @@
                     <h1>Dashboard {{ $dashboard['role_label'] ?? ($user['role_label'] ?? '') }}</h1>
                 </div>
 
-                <div class="user-menu">
-                    <div class="user-copy">
-                        <p>{{ $user['name'] ?? 'User' }}</p>
-                        <span>{{ $user['email'] ?? '' }}</span>
-                    </div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button class="button-secondary">Logout</button>
-                    </form>
-                </div>
+                <div class="page-meta">Ringkasan operasional laboratorium</div>
             </div>
         </header>
 
@@ -30,6 +21,17 @@
                         @foreach ($dashboard['actions'] as $action)
                             <span>{{ $action }}</span>
                         @endforeach
+                    </div>
+                    <div class="feature-links">
+                        @if (($user['role'] ?? null) === 'admin')
+                            <a href="{{ route('admin.users.index') }}">Kelola pengguna</a>
+                            <a href="{{ route('admin.rooms.index') }}">Kelola ruangan</a>
+                        @elseif (($user['role'] ?? null) === 'kaprodi')
+                            <a href="{{ route('kaprodi.drafts.index') }}">Review draf pengadaan</a>
+                        @elseif (($user['role'] ?? null) === 'staf_admin')
+                            <a href="{{ route('staf-admin.approved-drafts.index') }}">Draf disetujui</a>
+                            <a href="{{ route('staf-admin.inventories.index') }}">Update inventaris</a>
+                        @endif
                     </div>
                 </section>
 

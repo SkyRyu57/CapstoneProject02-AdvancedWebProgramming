@@ -49,6 +49,7 @@ services:
       APP_DEBUG: "true"
       APP_URL: http://127.0.0.1:8000
       BACKEND_API_URL: http://backend-node:5000/api
+      BACKEND_ASSET_URL: http://127.0.0.1:5000
       LOG_CHANNEL: stderr
       SESSION_DRIVER: file
       CACHE_STORE: file

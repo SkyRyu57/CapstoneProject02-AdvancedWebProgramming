@@ -12,11 +12,40 @@ class ProcurementDraft extends BaseModel {
     );
   }
 
-  static listForReview(limit = 5) {
+  static listForReview(limit = 100) {
     return this.findMany(
       { status: { $in: ['submitted', 'finalized'] } },
       { sort: { created_at: -1 }, limit },
     );
+  }
+
+  static findById(id) {
+    return this.findOne({ _id: Number(id) });
+  }
+
+  static listFinalized(limit = 100) {
+    return this.findMany(
+      { status: 'finalized' },
+      { sort: { finalized_at: -1, created_at: -1 }, limit },
+    );
+  }
+
+  static async finalize(id, reviewerId) {
+    const draft = await this.findById(id);
+
+    if (!draft) {
+      return null;
+    }
+
+    if (draft.status === 'finalized') {
+      return draft;
+    }
+
+    return this.updateById(id, {
+      status: 'finalized',
+      reviewer_id: reviewerId,
+      finalized_at: new Date(),
+    });
   }
 
   static async finalizedProcurementValue() {
