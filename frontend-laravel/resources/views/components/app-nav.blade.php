@@ -19,11 +19,16 @@
             @if ($role === 'admin')
                 <a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])>Pengguna</a>
                 <a href="{{ route('admin.rooms.index') }}" @class(['active' => request()->routeIs('admin.rooms.*')])>Ruangan</a>
+            @elseif ($role === 'kepala_lab')
+                <a href="{{ route('kepala-lab.drafts.index') }}" @class(['active' => request()->routeIs('kepala-lab.drafts.*')])>Draf Pengadaan</a>
             @elseif ($role === 'kaprodi')
                 <a href="{{ route('kaprodi.drafts.index') }}" @class(['active' => request()->routeIs('kaprodi.drafts.*')])>Review Draf</a>
             @elseif ($role === 'staf_admin')
                 <a href="{{ route('staf-admin.approved-drafts.index') }}" @class(['active' => request()->routeIs('staf-admin.approved-drafts.*')])>Draf Disetujui</a>
                 <a href="{{ route('staf-admin.inventories.index') }}" @class(['active' => request()->routeIs('staf-admin.inventories.*')])>Inventaris</a>
+            @elseif ($role === 'staf_lab')
+                <a href="{{ route('staf-lab.consumables.index') }}" @class(['active' => request()->routeIs('staf-lab.consumables.*')])>Stok BHP</a>
+                <a href="{{ route('staf-lab.maintenance.index') }}" @class(['active' => request()->routeIs('staf-lab.maintenance.*')])>Maintenance</a>
             @endif
         </div>
 

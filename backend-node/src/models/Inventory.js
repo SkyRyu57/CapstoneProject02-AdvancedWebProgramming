@@ -28,6 +28,23 @@ class Inventory extends BaseModel {
   static deleteInventory(id) {
     return this.deleteById(id);
   }
+
+  static listForStafLab(limit = 200) {
+    return this.findMany(
+      { status: { $ne: 'retired' } },
+      { sort: { name: 1 }, limit },
+    );
+  }
+
+  static findById(id) {
+    return this.findOne({ _id: Number(id) });
+  }
+
+  static updateCondition(id, condition, status) {
+    const payload = { condition };
+    if (status) payload.status = status;
+    return this.updateById(id, payload);
+  }
 }
 
 module.exports = Inventory;

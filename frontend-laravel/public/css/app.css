@@ -1003,3 +1003,58 @@ td {
         font-size: 24px;
     }
 }
+
+/* ── Status pill variants ── */
+.status-pill--success {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.status-pill--danger {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.status-pill--locked {
+    background: #f1f5f9;
+    color: #475467;
+}
+
+/* ── Topbar multi-button area ── */
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── BHP adjust form (inline in table) ── */
+.adjust-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 360px;
+}
+
+/* ── BHP usage rows in maintenance form ── */
+.bhp-usage-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.bhp-usage-row:last-child {
+    border-bottom: none;
+}
+
+#bhp-rows:empty::after {
+    content: "Belum ada BHP yang ditambahkan.";
+    display: block;
+    padding: 14px 0;
+    color: var(--muted);
+    font-size: 13px;
+}

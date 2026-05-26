@@ -30,6 +30,36 @@ class ProcurementDraft extends BaseModel {
     );
   }
 
+  static createDraft(data) {
+    return this.create({
+      kepala_lab_id: Number(data.kepala_lab_id),
+      fiscal_year: Number(data.fiscal_year),
+      status: 'submitted',
+      notes: data.notes || '',
+      reviewer_id: null,
+      finalized_at: null,
+    });
+  }
+
+  static async updateDraft(id, data) {
+    const draft = await this.findById(id);
+
+    if (!draft || draft.status === 'finalized') return null;
+
+    return this.updateById(id, {
+      fiscal_year: Number(data.fiscal_year),
+      notes: data.notes || '',
+    });
+  }
+
+  static async deleteDraft(id) {
+    const draft = await this.findById(id);
+
+    if (!draft || draft.status === 'finalized') return null;
+
+    return this.deleteById(id);
+  }
+
   static async finalize(id, reviewerId) {
     const draft = await this.findById(id);
 
