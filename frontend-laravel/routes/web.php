@@ -5,8 +5,11 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Kaprodi\ProcurementReviewController;
+use App\Http\Controllers\KepalaLab\ProcurementDraftController;
 use App\Http\Controllers\StafAdmin\ApprovedDraftController;
 use App\Http\Controllers\StafAdmin\InventoryController;
+use App\Http\Controllers\StafLab\ConsumableController;
+use App\Http\Controllers\StafLab\MaintenanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -47,6 +50,24 @@ Route::prefix('staf-admin')->name('staf-admin.')->group(function () {
     Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');
     Route::patch('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
     Route::delete('/inventories/{id}', [InventoryController::class, 'destroy'])->name('inventories.destroy');
+});
+
+Route::prefix('kepala-lab')->name('kepala-lab.')->group(function () {
+    Route::get('/procurement-drafts', [ProcurementDraftController::class, 'index'])->name('drafts.index');
+    Route::post('/procurement-drafts', [ProcurementDraftController::class, 'store'])->name('drafts.store');
+    Route::get('/procurement-drafts/{id}', [ProcurementDraftController::class, 'show'])->name('drafts.show');
+    Route::patch('/procurement-drafts/{id}', [ProcurementDraftController::class, 'update'])->name('drafts.update');
+    Route::delete('/procurement-drafts/{id}', [ProcurementDraftController::class, 'destroy'])->name('drafts.destroy');
+    Route::post('/procurement-drafts/{id}/items', [ProcurementDraftController::class, 'storeItem'])->name('drafts.items.store');
+    Route::patch('/procurement-drafts/{id}/items/{itemId}', [ProcurementDraftController::class, 'updateItem'])->name('drafts.items.update');
+    Route::delete('/procurement-drafts/{id}/items/{itemId}', [ProcurementDraftController::class, 'destroyItem'])->name('drafts.items.destroy');
+});
+
+Route::prefix('staf-lab')->name('staf-lab.')->group(function () {
+    Route::get('/consumables', [ConsumableController::class, 'index'])->name('consumables.index');
+    Route::post('/consumables/{id}/adjust', [ConsumableController::class, 'adjust'])->name('consumables.adjust');
+    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

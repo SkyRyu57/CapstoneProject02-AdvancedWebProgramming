@@ -27,6 +27,34 @@ class ProcurementDraftItem extends BaseModel {
   static review(id, approvalStatus) {
     return this.updateById(id, { approval_status: approvalStatus });
   }
+
+  static createItem(data) {
+    return this.create({
+      draft_id: Number(data.draft_id),
+      item_type: data.item_type || 'inventory',
+      name: data.name,
+      price: Number(data.price) || 0,
+      quantity: Number(data.quantity) || 1,
+      purchase_link: data.purchase_link || '',
+      replacement_inventory_id: data.replacement_inventory_id ? Number(data.replacement_inventory_id) : null,
+      approval_status: 'pending',
+    });
+  }
+
+  static async updateItem(id, data) {
+    return this.updateById(id, {
+      item_type: data.item_type,
+      name: data.name,
+      price: Number(data.price) || 0,
+      quantity: Number(data.quantity) || 1,
+      purchase_link: data.purchase_link || '',
+      replacement_inventory_id: data.replacement_inventory_id ? Number(data.replacement_inventory_id) : null,
+    });
+  }
+
+  static destroyItem(id) {
+    return this.deleteById(id);
+  }
 }
 
 module.exports = ProcurementDraftItem;

@@ -7,6 +7,8 @@ const adminController = require('./controllers/adminController');
 const authController = require('./controllers/authController');
 const dashboardController = require('./controllers/dashboardController');
 const kaprodiController = require('./controllers/kaprodiController');
+const kepalaLabController = require('./controllers/kepalaLabController');
+const stafLabController = require('./controllers/stafLabController');
 const authenticate = require('./middleware/authenticate');
 const authorize = require('./middleware/authorize');
 const uploadQrCode = require('./middleware/uploadQrCode');
@@ -50,6 +52,22 @@ app.get('/api/staf-admin/inventories', authenticate, authorize('staf_admin'), st
 app.patch('/api/staf-admin/inventories/:id', authenticate, authorize('staf_admin'), uploadQrCode.single('qr_code'), stafAdminController.updateInventory);
 app.post('/api/staf-admin/inventories/:id', authenticate, authorize('staf_admin'), uploadQrCode.single('qr_code'), stafAdminController.updateInventory);
 app.delete('/api/staf-admin/inventories/:id', authenticate, authorize('staf_admin'), stafAdminController.destroyInventory);
+
+app.get('/api/kepala-lab/procurement-drafts', authenticate, authorize('kepala_lab'), kepalaLabController.index);
+app.post('/api/kepala-lab/procurement-drafts', authenticate, authorize('kepala_lab'), kepalaLabController.store);
+app.get('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.show);
+app.patch('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.update);
+app.delete('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.destroy);
+app.post('/api/kepala-lab/procurement-drafts/:id/items', authenticate, authorize('kepala_lab'), kepalaLabController.storeItem);
+app.patch('/api/kepala-lab/procurement-drafts/:id/items/:itemId', authenticate, authorize('kepala_lab'), kepalaLabController.updateItem);
+app.delete('/api/kepala-lab/procurement-drafts/:id/items/:itemId', authenticate, authorize('kepala_lab'), kepalaLabController.destroyItem);
+app.get('/api/kepala-lab/inventories', authenticate, authorize('kepala_lab'), kepalaLabController.inventories);
+
+app.get('/api/staf-lab/consumables', authenticate, authorize('staf_lab'), stafLabController.consumables);
+app.post('/api/staf-lab/consumables/:id/adjust', authenticate, authorize('staf_lab'), stafLabController.adjustStock);
+app.get('/api/staf-lab/inventories', authenticate, authorize('staf_lab'), stafLabController.inventories);
+app.get('/api/staf-lab/maintenance', authenticate, authorize('staf_lab'), stafLabController.maintenanceLogs);
+app.post('/api/staf-lab/maintenance', authenticate, authorize('staf_lab'), stafLabController.storeMaintenance);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint tidak ditemukan.' });
