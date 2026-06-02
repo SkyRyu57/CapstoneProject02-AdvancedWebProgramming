@@ -19,6 +19,13 @@ class ProcurementDraft extends BaseModel {
     );
   }
 
+  static listByKepalaLabAll(kepalaLabId, limit = 100) {
+    return this.findMany(
+      { kepala_lab_id: kepalaLabId },
+      { sort: { created_at: -1 }, limit },
+    );
+  }
+
   static findById(id) {
     return this.findOne({ _id: Number(id) });
   }
@@ -34,10 +41,21 @@ class ProcurementDraft extends BaseModel {
     return this.create({
       kepala_lab_id: Number(data.kepala_lab_id),
       fiscal_year: Number(data.fiscal_year),
-      status: 'submitted',
+      status: 'draft',
       notes: data.notes || '',
       reviewer_id: null,
       finalized_at: null,
+    });
+  }
+
+  static async submitDraft(id) {
+    const draft = await this.findById(id);
+
+    if (!draft || draft.status !== 'draft') return null;
+
+    return this.updateById(id, {
+      status: 'submitted',
+      submitted_at: new Date(),
     });
   }
 

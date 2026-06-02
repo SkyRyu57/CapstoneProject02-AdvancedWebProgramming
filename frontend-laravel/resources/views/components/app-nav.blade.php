@@ -16,6 +16,10 @@
         <div class="nav-links">
             <a href="{{ route('dashboard') }}" @class(['active' => request()->routeIs('dashboard')])>Dashboard</a>
 
+            @if ($role !== 'admin')
+                <a href="{{ route('inventory-list.index') }}" @class(['active' => request()->routeIs('inventory-list.*')])>Daftar Barang</a>
+            @endif
+
             @if ($role === 'admin')
                 <a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])>Pengguna</a>
                 <a href="{{ route('admin.rooms.index') }}" @class(['active' => request()->routeIs('admin.rooms.*')])>Ruangan</a>

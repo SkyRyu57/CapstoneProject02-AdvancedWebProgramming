@@ -91,6 +91,18 @@ class ProcurementDraftController extends Controller
         );
     }
 
+    public function submit(BackendApi $api, int $id)
+    {
+        if ($redirect = $this->ensureRole('kepala_lab')) {
+            return $redirect;
+        }
+
+        return $this->backWithApiResult(
+            $this->api($api)->patch("/kepala-lab/procurement-drafts/{$id}/submit"),
+            'Draf berhasil disubmit. Draf sekarang terkunci dan akan diproses oleh Kaprodi.',
+        );
+    }
+
     public function storeItem(Request $request, BackendApi $api, int $id)
     {
         if ($redirect = $this->ensureRole('kepala_lab')) {

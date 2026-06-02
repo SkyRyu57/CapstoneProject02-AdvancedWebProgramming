@@ -56,6 +56,7 @@ app.delete('/api/staf-admin/inventories/:id', authenticate, authorize('staf_admi
 app.get('/api/kepala-lab/procurement-drafts', authenticate, authorize('kepala_lab'), kepalaLabController.index);
 app.post('/api/kepala-lab/procurement-drafts', authenticate, authorize('kepala_lab'), kepalaLabController.store);
 app.get('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.show);
+app.patch('/api/kepala-lab/procurement-drafts/:id/submit', authenticate, authorize('kepala_lab'), kepalaLabController.submit);
 app.patch('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.update);
 app.delete('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.destroy);
 app.post('/api/kepala-lab/procurement-drafts/:id/items', authenticate, authorize('kepala_lab'), kepalaLabController.storeItem);
@@ -67,7 +68,16 @@ app.get('/api/staf-lab/consumables', authenticate, authorize('staf_lab'), stafLa
 app.post('/api/staf-lab/consumables/:id/adjust', authenticate, authorize('staf_lab'), stafLabController.adjustStock);
 app.get('/api/staf-lab/inventories', authenticate, authorize('staf_lab'), stafLabController.inventories);
 app.get('/api/staf-lab/maintenance', authenticate, authorize('staf_lab'), stafLabController.maintenanceLogs);
+app.get('/api/staf-lab/maintenance/:id', authenticate, authorize('staf_lab'), stafLabController.maintenanceLogDetail);
 app.post('/api/staf-lab/maintenance', authenticate, authorize('staf_lab'), stafLabController.storeMaintenance);
+
+// Shared inventory list – accessible by all roles except admin
+app.get(
+  '/api/inventory-list',
+  authenticate,
+  authorize('kepala_lab', 'kaprodi', 'staf_admin', 'staf_lab'),
+  stafAdminController.inventoryList,
+);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint tidak ditemukan.' });

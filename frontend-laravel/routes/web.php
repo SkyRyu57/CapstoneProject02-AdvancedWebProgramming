@@ -10,6 +10,7 @@ use App\Http\Controllers\StafAdmin\ApprovedDraftController;
 use App\Http\Controllers\StafAdmin\InventoryController;
 use App\Http\Controllers\StafLab\ConsumableController;
 use App\Http\Controllers\StafLab\MaintenanceController;
+use App\Http\Controllers\InventoryListController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -25,6 +26,9 @@ Route::get('/forgot-account', [AuthController::class, 'showForgotAccount'])->nam
 Route::post('/forgot-account', [AuthController::class, 'forgotAccount'])->name('forgot-account.store');
 
 Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+// Shared inventory list (all roles except admin)
+Route::get('/inventory-list', [InventoryListController::class, 'index'])->name('inventory-list.index');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -56,6 +60,7 @@ Route::prefix('kepala-lab')->name('kepala-lab.')->group(function () {
     Route::get('/procurement-drafts', [ProcurementDraftController::class, 'index'])->name('drafts.index');
     Route::post('/procurement-drafts', [ProcurementDraftController::class, 'store'])->name('drafts.store');
     Route::get('/procurement-drafts/{id}', [ProcurementDraftController::class, 'show'])->name('drafts.show');
+    Route::patch('/procurement-drafts/{id}/submit', [ProcurementDraftController::class, 'submit'])->name('drafts.submit');
     Route::patch('/procurement-drafts/{id}', [ProcurementDraftController::class, 'update'])->name('drafts.update');
     Route::delete('/procurement-drafts/{id}', [ProcurementDraftController::class, 'destroy'])->name('drafts.destroy');
     Route::post('/procurement-drafts/{id}/items', [ProcurementDraftController::class, 'storeItem'])->name('drafts.items.store');
@@ -67,6 +72,7 @@ Route::prefix('staf-lab')->name('staf-lab.')->group(function () {
     Route::get('/consumables', [ConsumableController::class, 'index'])->name('consumables.index');
     Route::post('/consumables/{id}/adjust', [ConsumableController::class, 'adjust'])->name('consumables.adjust');
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::get('/maintenance/{id}', [MaintenanceController::class, 'show'])->name('maintenance.show');
     Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
 });
 
