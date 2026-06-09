@@ -24,7 +24,7 @@
                 <a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])>Pengguna</a>
                 <a href="{{ route('admin.rooms.index') }}" @class(['active' => request()->routeIs('admin.rooms.*')])>Ruangan</a>
             @else
-                <a href="{{ route('inventories.list') }}" @class(['active' => request()->routeIs('inventories.list')])>Daftar Barang</a>
+                <a href="{{ route('inventory-list.index') }}" @class(['active' => request()->routeIs('inventory-list.index')])>Daftar Barang</a>
                 
                 @if ($role === 'kepala_lab')
                     <a href="{{ route('kepala-lab.drafts.index') }}" @class(['active' => request()->routeIs('kepala-lab.drafts.*')])>Draf Pengadaan</a>

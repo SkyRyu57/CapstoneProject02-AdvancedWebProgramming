@@ -28,18 +28,18 @@
                             <a href="{{ route('admin.rooms.index') }}">Kelola ruangan</a>
                         @elseif (($user['role'] ?? null) === 'kepala_lab')
                             <a href="{{ route('kepala-lab.drafts.index') }}">Draf pengadaan saya</a>
-                            <a href="{{ route('inventories.list') }}">Daftar Inventaris Laboratorium</a>
+                            <a href="{{ route('inventory-list.index') }}">Daftar Inventaris Laboratorium</a>
                         @elseif (($user['role'] ?? null) === 'kaprodi')
                             <a href="{{ route('kaprodi.drafts.index') }}">Review draf pengadaan</a>
-                            <a href="{{ route('inventories.list') }}">Daftar Inventaris Laboratorium</a>
+                            <a href="{{ route('inventory-list.index') }}">Daftar Inventaris Laboratorium</a>
                         @elseif (($user['role'] ?? null) === 'staf_admin')
                             <a href="{{ route('staf-admin.approved-drafts.index') }}">Draf disetujui</a>
                             <a href="{{ route('staf-admin.inventories.index') }}">Update inventaris</a>
-                            <a href="{{ route('inventories.list') }}">Daftar Inventaris Laboratorium</a>
+                            <a href="{{ route('inventory-list.index') }}">Daftar Inventaris Laboratorium</a>
                         @elseif (($user['role'] ?? null) === 'staf_lab')
                             <a href="{{ route('staf-lab.consumables.index') }}">Kelola stok BHP</a>
                             <a href="{{ route('staf-lab.maintenance.index') }}">Catat maintenance</a>
-                            <a href="{{ route('inventories.list') }}">Daftar Inventaris Laboratorium</a>
+                            <a href="{{ route('inventory-list.index') }}">Daftar Inventaris Laboratorium</a>
                         @endif
                     </div>
                 </section>
