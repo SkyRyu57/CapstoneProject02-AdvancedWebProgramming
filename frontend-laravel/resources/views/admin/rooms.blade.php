@@ -34,8 +34,9 @@
             </section>
 
             <section class="data-panel section-gap">
-                <div class="panel-header">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <h2>Daftar Ruangan</h2>
+                    <input type="text" id="room-search" class="input" placeholder="Cari nama atau deskripsi..." style="max-width: 300px;">
                 </div>
                 @foreach ($rooms as $room)
                     <form id="room-update-{{ $room['_id'] }}" method="POST" action="{{ route('admin.rooms.update', $room['_id']) }}">
@@ -54,7 +55,7 @@
                         </thead>
                         <tbody>
                             @foreach ($rooms as $room)
-                                <tr>
+                                <tr class="room-row" data-search="{{ strtolower($room['name'] . ' ' . ($room['description'] ?? '')) }}">
                                     <td><input form="room-update-{{ $room['_id'] }}" class="input table-input" name="name" value="{{ $room['name'] }}" required></td>
                                     <td><input form="room-update-{{ $room['_id'] }}" class="input table-input" name="description" value="{{ $room['description'] ?? '' }}"></td>
                                     <td>
@@ -75,4 +76,17 @@
             </section>
         </main>
     </div>
+
+    <script>
+        const roomSearch = document.getElementById('room-search');
+        if (roomSearch) {
+            roomSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.room-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

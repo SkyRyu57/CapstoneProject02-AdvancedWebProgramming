@@ -18,8 +18,9 @@
             @endif
 
             <section class="data-panel">
-                <div class="panel-header">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <h2>Item yang Sudah Disetujui Kaprodi</h2>
+                    <input type="text" id="draft-search" class="input" placeholder="Cari tahun, barang, atau tipe..." style="max-width: 300px;">
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -35,7 +36,7 @@
                         <tbody>
                             @forelse ($drafts as $draft)
                                 @foreach (($draft['items'] ?? []) as $item)
-                                    <tr>
+                                    <tr class="draft-row" data-search="{{ strtolower($draft['fiscal_year'] . ' ' . $item['name'] . ' ' . $item['item_type']) }}">
                                         <td>{{ $draft['fiscal_year'] }}</td>
                                         <td>{{ $item['name'] }}</td>
                                         <td>{{ $item['item_type'] }}</td>
@@ -63,8 +64,9 @@
             </section>
 
             <section class="data-panel section-gap">
-                <div class="panel-header">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <h2>Riwayat Penerimaan</h2>
+                    <input type="text" id="receipt-search" class="input" placeholder="Cari tanggal atau catatan..." style="max-width: 300px;">
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -78,7 +80,7 @@
                         </thead>
                         <tbody>
                             @forelse ($receipts as $receipt)
-                                <tr>
+                                <tr class="receipt-row" data-search="{{ strtolower((isset($receipt['received_date']) ? substr($receipt['received_date'], 0, 10) : '') . ' ' . ($receipt['notes'] ?? '')) }}">
                                     <td>{{ $receipt['draft_item_id'] }}</td>
                                     <td>{{ isset($receipt['received_date']) ? substr($receipt['received_date'], 0, 10) : '-' }}</td>
                                     <td>{{ $receipt['quantity'] }}</td>
@@ -95,4 +97,28 @@
             </section>
         </main>
     </div>
+
+    <script>
+        const draftSearch = document.getElementById('draft-search');
+        if (draftSearch) {
+            draftSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.draft-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        const receiptSearch = document.getElementById('receipt-search');
+        if (receiptSearch) {
+            receiptSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.receipt-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

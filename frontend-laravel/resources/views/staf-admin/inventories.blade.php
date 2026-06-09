@@ -19,9 +19,12 @@
 
             <section class="data-panel">
                 <div class="panel-header">
-                    <div>
-                        <h2>Label dan QR/Barcode</h2>
-                        <p class="panel-subtitle">Data ringkas inventaris. Gunakan tombol detail untuk edit label, ruangan, kondisi, status, dan gambar QR/Barcode.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h2>Label dan QR/Barcode</h2>
+                            <p class="panel-subtitle">Data ringkas inventaris. Gunakan tombol detail untuk edit label, ruangan, kondisi, status, dan gambar QR/Barcode.</p>
+                        </div>
+                        <input type="text" id="inventory-search" class="input" placeholder="Cari barang, label, ruangan..." style="max-width: 300px;">
                     </div>
                 </div>
 
@@ -50,25 +53,22 @@
                                 @php
                                     $qrCode = $inventory['qr_code'] ?? '';
                                     $qrIsUploadedImage = str_starts_with($qrCode, '/uploads/');
+                                    $generatedQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=INV-" . $inventory['_id'];
                                     $roomName = collect($rooms)->firstWhere('_id', $inventory['room_id'] ?? null)['name'] ?? '-';
                                 @endphp
-                                <tr>
+                                <tr class="inventory-row" data-search="{{ strtolower($inventory['name'] . ' ' . ($inventory['description'] ?? '') . ' ' . ($inventory['label_code'] ?? '') . ' ' . $roomName) }}">
                                     <td>
                                         <strong>{{ $inventory['name'] }}</strong>
                                         <div class="muted-link">{{ $inventory['description'] ?? '-' }}</div>
                                     </td>
                                     <td>{{ $inventory['label_code'] ?? '-' }}</td>
                                     <td>
-                                        @if ($qrIsUploadedImage)
-                                            <div class="qr-chip">
-                                                <img src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="QR/Barcode {{ $inventory['name'] }}">
-                                                <span>Ada gambar</span>
-                                            </div>
-                                        @elseif (!empty($qrCode))
-                                            <span class="status-pill">{{ $qrCode }}</span>
-                                        @else
-                                            <span class="muted-link">Belum ada</span>
-                                        @endif
+                                        <div style="display: flex; gap: 8px;">
+                                            <img class="qr-mini" src="{{ $generatedQrUrl }}" alt="System QR {{ $inventory['name'] }}" title="System QR (INV-{{ $inventory['_id'] }})">
+                                            @if ($qrIsUploadedImage)
+                                                <img class="qr-mini" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="Uploaded QR {{ $inventory['name'] }}" title="Uploaded QR">
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>{{ $roomName }}</td>
                                     <td><span class="status-pill">{{ $inventory['condition'] ?? '-' }}</span></td>
@@ -103,6 +103,7 @@
         @php
             $qrCode = $inventory['qr_code'] ?? '';
             $qrIsUploadedImage = str_starts_with($qrCode, '/uploads/');
+            $generatedQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=INV-" . $inventory['_id'];
             $roomName = collect($rooms)->firstWhere('_id', $inventory['room_id'] ?? null)['name'] ?? '-';
         @endphp
         <div class="modal-backdrop inventory-modal-backdrop" id="inventory-detail-{{ $inventory['_id'] }}" hidden>
@@ -122,12 +123,21 @@
                     <div><dt>Kondisi</dt><dd>{{ $inventory['condition'] ?? '-' }}</dd></div>
                     <div><dt>Status</dt><dd>{{ $inventory['status'] ?? '-' }}</dd></div>
                     <div><dt>Harga</dt><dd>Rp {{ number_format($inventory['price'] ?? 0, 0, ',', '.') }}</dd></div>
-                    <div><dt>QR/Barcode</dt><dd>{{ $qrCode ?: '-' }}</dd></div>
+                    <div><dt>Sistem ID</dt><dd>INV-{{ $inventory['_id'] }}</dd></div>
                 </dl>
 
-                @if ($qrIsUploadedImage)
-                    <img class="qr-large-preview" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="QR/Barcode {{ $inventory['name'] }}">
-                @endif
+                <div style="display: flex; gap: 16px; margin-top: 20px;">
+                    <div>
+                        <p class="modal-copy" style="margin-bottom: 8px; font-weight: bold; font-size: 13px;">System QR (INV-{{ $inventory['_id'] }})</p>
+                        <img class="qr-large-preview" src="{{ $generatedQrUrl }}" alt="System QR {{ $inventory['name'] }}">
+                    </div>
+                    @if ($qrIsUploadedImage)
+                        <div>
+                            <p class="modal-copy" style="margin-bottom: 8px; font-weight: bold; font-size: 13px;">Uploaded QR</p>
+                            <img class="qr-large-preview" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="Uploaded QR {{ $inventory['name'] }}">
+                        </div>
+                    @endif
+                </div>
 
                 <div class="modal-actions">
                     <button type="button" class="button-secondary" data-close-inventory-modal>Tutup</button>
@@ -181,17 +191,32 @@
                 </div>
 
                 <div class="qr-upload-panel">
-                    <input form="inventory-update-{{ $inventory['_id'] }}" type="hidden" name="existing_qr_code" value="{{ $inventory['qr_code'] ?? '' }}">
+                    <input form="inventory-update-{{ $inventory['_id'] }}" type="hidden" name="existing_qr_code" value="{{ $qrIsUploadedImage ? $qrCode : '' }}">
+
                     <div>
-                        <label class="field-label">Gambar QR/Barcode</label>
-                        <p class="modal-copy">Upload gambar QR atau barcode aset. Jika kosong, gambar lama tetap dipakai.</p>
+                        <label class="field-label">Barcode / QR Code</label>
+                        <p class="modal-copy">Sistem otomatis men-generate QR Code dari ID inventaris. Anda juga dapat meng-upload QR Code tambahan (opsional).</p>
                     </div>
-                    @if ($qrIsUploadedImage)
-                        <img class="qr-large-preview" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="QR/Barcode {{ $inventory['name'] }}">
-                    @elseif (!empty($qrCode))
-                        <div class="notice">File lama: {{ $qrCode }}</div>
-                    @endif
-                    <input form="inventory-update-{{ $inventory['_id'] }}" class="input file-input" name="qr_code" type="file" accept="image/*">
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div class="barcode-option" style="flex: 1; min-width: 200px;">
+                            <div class="barcode-generated-preview">
+                                <label class="field-label" style="margin-bottom: 8px;">System QR (Otomatis)</label>
+                                <img class="qr-large-preview" src="{{ $generatedQrUrl }}" alt="System QR">
+                                <span class="barcode-code-label" style="margin-top: 8px; align-self: flex-start;">INV-{{ $inventory['_id'] }}</span>
+                            </div>
+                        </div>
+
+                        <div class="barcode-option" style="flex: 1; min-width: 200px; flex-direction: column; align-items: flex-start;">
+                            <label class="field-label">Upload Gambar Barcode (Opsional)</label>
+                            @if ($qrIsUploadedImage)
+                                <img class="qr-large-preview" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="QR/Barcode {{ $inventory['name'] }}">
+                                <p class="modal-copy">Gambar barcode saat ini</p>
+                            @endif
+                            <input form="inventory-update-{{ $inventory['_id'] }}" class="input file-input" name="qr_code" type="file" accept="image/*"
+                                id="file-input-{{ $inventory['_id'] }}">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">
@@ -226,6 +251,17 @@
                     button.addEventListener('click', () => closeModal(modal));
                 });
             });
+
+            const inventorySearch = document.getElementById('inventory-search');
+            if (inventorySearch) {
+                inventorySearch.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase();
+                    document.querySelectorAll('.inventory-row').forEach(row => {
+                        const text = row.dataset.search || '';
+                        row.style.display = text.includes(query) ? '' : 'none';
+                    });
+                });
+            }
         })();
     </script>
 </x-layouts.app>

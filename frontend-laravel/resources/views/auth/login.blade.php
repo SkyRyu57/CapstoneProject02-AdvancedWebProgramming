@@ -1,14 +1,14 @@
 <x-layouts.app title="Login Lab Asset">
     <main class="auth-shell">
-        <section class="auth-main">
+        <section class="auth-main fade-in-up">
             <div class="auth-card-wrap">
                 <div class="page-kicker">Inventaris Laboratorium</div>
                 <div class="page-heading">
                     <h1>Masuk ke sistem aset dan BHP</h1>
-                    <p>Akun dibuat oleh administrator. Gunakan kredensial yang sudah diberikan sesuai role Anda.</p>
+                    <p>Gunakan kredensial yang sudah diberikan sesuai role Anda.</p>
                 </div>
 
-                <form method="POST" action="{{ route('login.store') }}" class="form-card">
+                <form method="POST" action="{{ route('login.store') }}" class="form-card login-form-card">
                     @csrf
 
                     <div class="field">
@@ -28,17 +28,13 @@
 
                     <div class="form-actions">
                         <a href="{{ route('forgot-account') }}">Lupa akun?</a>
-                        <button type="submit" class="button-primary">Login</button>
+                        <button type="submit" class="button-primary login-btn">Login</button>
                     </div>
                 </form>
-
-                <div class="notice">
-                    Demo: <strong>nadia@kampus.ac.id</strong> sampai <strong>bagas@kampus.ac.id</strong>, password <strong>password_demo</strong>.
-                </div>
             </div>
         </section>
 
-        <section class="auth-side">
+        <section class="auth-side fade-in-left">
             <div>
                 <div class="side-badge">Capstone 2</div>
                 <h2>Digitalisasi aset, pengadaan, maintenance, dan stok habis pakai.</h2>

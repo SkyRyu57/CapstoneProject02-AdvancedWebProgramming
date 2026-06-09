@@ -13,6 +13,7 @@ const authenticate = require('./middleware/authenticate');
 const authorize = require('./middleware/authorize');
 const uploadQrCode = require('./middleware/uploadQrCode');
 const stafAdminController = require('./controllers/stafAdminController');
+const inventoryListController = require('./controllers/inventoryListController');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.post('/api/auth/login', authController.login);
 app.post('/api/auth/forgot-account', authController.forgotAccount);
 app.get('/api/auth/me', authenticate, authController.me);
 app.get('/api/dashboard', authenticate, dashboardController.show);
+app.get('/api/inventories', authenticate, authorize('kaprodi', 'kepala_lab', 'staf_admin', 'staf_lab'), inventoryListController.index);
 
 app.get('/api/admin/users', authenticate, authorize('admin'), adminController.users);
 app.post('/api/admin/users', authenticate, authorize('admin'), adminController.storeUser);
@@ -58,6 +60,7 @@ app.post('/api/kepala-lab/procurement-drafts', authenticate, authorize('kepala_l
 app.get('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.show);
 app.patch('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.update);
 app.delete('/api/kepala-lab/procurement-drafts/:id', authenticate, authorize('kepala_lab'), kepalaLabController.destroy);
+app.patch('/api/kepala-lab/procurement-drafts/:id/submit', authenticate, authorize('kepala_lab'), kepalaLabController.submit);
 app.post('/api/kepala-lab/procurement-drafts/:id/items', authenticate, authorize('kepala_lab'), kepalaLabController.storeItem);
 app.patch('/api/kepala-lab/procurement-drafts/:id/items/:itemId', authenticate, authorize('kepala_lab'), kepalaLabController.updateItem);
 app.delete('/api/kepala-lab/procurement-drafts/:id/items/:itemId', authenticate, authorize('kepala_lab'), kepalaLabController.destroyItem);

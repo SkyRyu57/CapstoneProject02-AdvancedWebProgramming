@@ -22,13 +22,28 @@
                         <div>
                             <h2>Informasi Draf</h2>
                             <p class="panel-subtitle">
+                                @php
+                                    $statusLabels = [
+                                        'draft' => 'Draf',
+                                        'submitted' => 'Diajukan',
+                                        'finalized' => 'Difinalisasi'
+                                    ];
+                                    $statusLabel = $statusLabels[$draft['status']] ?? ucfirst($draft['status']);
+                                @endphp
                                 Tahun {{ $draft['fiscal_year'] }} &middot;
-                                Status <strong>{{ $draft['status'] }}</strong>
+                                Status <strong>{{ $statusLabel }}</strong>
                                 @if ($draft['locked'])
                                     &middot; <span class="status-pill status-pill--locked">🔒 Terkunci</span>
                                 @endif
                             </p>
                         </div>
+                        @if ($draft['status'] === 'draft')
+                            <form method="POST" action="{{ route('kepala-lab.drafts.submit', $draft['_id']) }}" onsubmit="return confirm('Apakah Anda yakin ingin men-submit draf ini? Setelah di-submit, draf tidak dapat diubah lagi.');">
+                                @csrf
+                                @method('PATCH')
+                                <button class="button-primary">Submit Draf</button>
+                            </form>
+                        @endif
                     </div>
 
                     @if (!$draft['locked'])
@@ -54,8 +69,9 @@
 
                 {{-- Tabel item --}}
                 <section class="data-panel section-gap">
-                    <div class="panel-header">
+                    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                         <h2>Daftar Item Pengadaan</h2>
+                        <input type="text" id="item-search" class="input" placeholder="Cari barang, tipe, link..." style="max-width: 300px;">
                     </div>
 
                     @if (!$draft['locked'])
@@ -91,7 +107,7 @@
                                         $replacedName = collect($inventories)
                                             ->firstWhere('_id', $item['replacement_inventory_id'] ?? null)['name'] ?? '-';
                                     @endphp
-                                    <tr>
+                                    <tr class="item-row" data-search="{{ strtolower($item['name'] . ' ' . $item['item_type'] . ' ' . ($item['purchase_link'] ?? '') . ' ' . $replacedName . ' ' . $item['approval_status']) }}">
                                         @if ($draft['locked'])
                                             <td><strong>{{ $item['name'] }}</strong></td>
                                             <td><span class="status-pill">{{ $item['item_type'] }}</span></td>
@@ -105,7 +121,15 @@
                                                 @endif
                                             </td>
                                             <td>{{ $replacedName }}</td>
-                                            <td><span class="status-pill">{{ $item['approval_status'] }}</span></td>
+                                            @php
+                                                $approvalLabels = [
+                                                    'pending' => 'Pending',
+                                                    'approved' => 'Disetujui',
+                                                    'rejected' => 'Ditolak'
+                                                ];
+                                                $approvalLabel = $approvalLabels[$item['approval_status']] ?? ucfirst($item['approval_status']);
+                                            @endphp
+                                            <td><span class="status-pill">{{ $approvalLabel }}</span></td>
                                         @else
                                             <td>
                                                 <input form="item-update-{{ $item['_id'] }}"
@@ -161,7 +185,15 @@
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td><span class="status-pill">{{ $item['approval_status'] }}</span></td>
+                                            @php
+                                                $approvalLabels = [
+                                                    'pending' => 'Pending',
+                                                    'approved' => 'Disetujui',
+                                                    'rejected' => 'Ditolak'
+                                                ];
+                                                $approvalLabel = $approvalLabels[$item['approval_status']] ?? ucfirst($item['approval_status']);
+                                            @endphp
+                                            <td><span class="status-pill">{{ $approvalLabel }}</span></td>
                                             <td>
                                                 <div class="action-cell">
                                                     <button form="item-update-{{ $item['_id'] }}"
@@ -247,4 +279,17 @@
             @endif
         </main>
     </div>
+
+    <script>
+        const itemSearch = document.getElementById('item-search');
+        if (itemSearch) {
+            itemSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

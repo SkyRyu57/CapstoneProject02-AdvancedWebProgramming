@@ -17,7 +17,15 @@
                 <div class="notice danger">{{ $error }}</div>
             @elseif ($draft)
                 <section class="dashboard-intro">
-                    <p>Tahun {{ $draft['fiscal_year'] }} · status <strong>{{ $draft['status'] }}</strong>{{ $draft['locked'] ? ' · locked' : '' }}</p>
+                    @php
+                        $statusLabels = [
+                            'draft' => 'Draf',
+                            'submitted' => 'Diajukan',
+                            'finalized' => 'Difinalisasi'
+                        ];
+                        $statusLabel = $statusLabels[$draft['status']] ?? ucfirst($draft['status']);
+                    @endphp
+                    <p>Tahun {{ $draft['fiscal_year'] }} · status <strong>{{ $statusLabel }}</strong>{{ $draft['locked'] ? ' · locked' : '' }}</p>
                     @if (! $draft['locked'])
                         <form method="POST" action="{{ route('kaprodi.drafts.finalize', $draft['_id']) }}" class="inline-form">
                             @csrf
@@ -28,8 +36,9 @@
                 </section>
 
                 <section class="data-panel">
-                    <div class="panel-header">
+                    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                         <h2>Item Pengadaan</h2>
+                        <input type="text" id="item-search" class="input" placeholder="Cari barang, tipe, link..." style="max-width: 300px;">
                     </div>
                     <div class="table-wrap">
                         <table>
@@ -45,7 +54,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($draft['items'] as $item)
-                                    <tr>
+                                    <tr class="item-row" data-search="{{ strtolower($item['name'] . ' ' . $item['item_type'] . ' ' . ($item['purchase_link'] ?? '') . ' ' . $item['approval_status']) }}">
                                         <td>
                                             <strong>{{ $item['name'] }}</strong>
                                             <div class="muted-link">{{ $item['purchase_link'] ?? '-' }}</div>
@@ -53,7 +62,15 @@
                                         <td>{{ $item['item_type'] }}</td>
                                         <td>Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
                                         <td>{{ $item['quantity'] }}</td>
-                                        <td><span class="status-pill">{{ $item['approval_status'] }}</span></td>
+                                        @php
+                                            $approvalLabels = [
+                                                'pending' => 'Pending',
+                                                'approved' => 'Disetujui',
+                                                'rejected' => 'Ditolak'
+                                            ];
+                                            $approvalLabel = $approvalLabels[$item['approval_status']] ?? ucfirst($item['approval_status']);
+                                        @endphp
+                                        <td><span class="status-pill">{{ $approvalLabel }}</span></td>
                                         <td>
                                             @if ($draft['locked'])
                                                 <span class="muted-link">Final</span>
@@ -76,4 +93,17 @@
             @endif
         </main>
     </div>
+
+    <script>
+        const itemSearch = document.getElementById('item-search');
+        if (itemSearch) {
+            itemSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

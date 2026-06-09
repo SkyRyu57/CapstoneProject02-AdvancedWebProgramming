@@ -34,7 +34,7 @@ class ProcurementDraft extends BaseModel {
     return this.create({
       kepala_lab_id: Number(data.kepala_lab_id),
       fiscal_year: Number(data.fiscal_year),
-      status: 'submitted',
+      status: 'draft',
       notes: data.notes || '',
       reviewer_id: null,
       finalized_at: null,
@@ -58,6 +58,18 @@ class ProcurementDraft extends BaseModel {
     if (!draft || draft.status === 'finalized') return null;
 
     return this.deleteById(id);
+  }
+
+  static async submitDraft(id) {
+    const draft = await this.findById(id);
+
+    if (!draft || draft.status !== 'draft') {
+      return null;
+    }
+
+    return this.updateById(id, {
+      status: 'submitted',
+    });
   }
 
   static async finalize(id, reviewerId) {

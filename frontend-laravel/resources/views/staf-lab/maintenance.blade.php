@@ -102,8 +102,9 @@
 
             {{-- Riwayat log --}}
             <section class="data-panel section-gap">
-                <div class="panel-header">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <h2>Riwayat Log Maintenance</h2>
+                    <input type="text" id="log-search" class="input" placeholder="Cari inventaris, tanggal, atau deskripsi..." style="max-width: 300px;">
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -123,7 +124,7 @@
                                         ->firstWhere('_id', $log['inventory_item_id'] ?? null)['name']
                                         ?? 'Inventaris #' . ($log['inventory_item_id'] ?? '-');
                                 @endphp
-                                <tr>
+                                <tr class="log-row" data-search="{{ strtolower($invName . ' ' . (isset($log['maintenance_date']) ? substr($log['maintenance_date'], 0, 10) : '') . ' ' . ($log['description'] ?? '')) }}">
                                     <td>{{ $invName }}</td>
                                     <td>{{ isset($log['maintenance_date']) ? substr($log['maintenance_date'], 0, 10) : '-' }}</td>
                                     <td><span class="status-pill">{{ $log['condition_before'] ?? '-' }}</span></td>
@@ -177,6 +178,17 @@
                 container.appendChild(row);
                 bhpIndex++;
             });
+
+            const logSearch = document.getElementById('log-search');
+            if (logSearch) {
+                logSearch.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase();
+                    document.querySelectorAll('.log-row').forEach(row => {
+                        const text = row.dataset.search || '';
+                        row.style.display = text.includes(query) ? '' : 'none';
+                    });
+                });
+            }
         })();
     </script>
 </x-layouts.app>
