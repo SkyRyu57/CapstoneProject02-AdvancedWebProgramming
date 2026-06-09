@@ -5,7 +5,7 @@ const ProcurementDraftItem = require('../models/ProcurementDraftItem');
 async function buildDraftPayload(draftId = null, kepalaLabId = null) {
   const drafts = draftId
     ? [await ProcurementDraft.findById(draftId)].filter(Boolean)
-    : await ProcurementDraft.listByKepalaLab(kepalaLabId, 100);
+    : await ProcurementDraft.listByKepalaLabAll(kepalaLabId, 100);
 
   const items = await ProcurementDraftItem.listByDraftIds(drafts.map((d) => d._id));
 
@@ -72,7 +72,7 @@ exports.update = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Draf yang sudah di-submit tidak dapat diubah.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit dan tidak dapat diubah.' });
     }
 
     const { fiscal_year, notes } = req.body;
@@ -98,7 +98,7 @@ exports.destroy = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Draf yang sudah di-submit tidak dapat dihapus.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit dan tidak dapat dihapus.' });
     }
 
     await ProcurementDraft.deleteDraft(draft._id);
@@ -118,11 +118,16 @@ exports.submit = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Hanya draf dengan status "draft" yang dapat di-submit.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit atau difinalisasi.' });
     }
 
-    const updated = await ProcurementDraft.submitDraft(draft._id);
-    return res.json({ message: 'Draf berhasil di-submit.', draft: updated });
+    const items = await ProcurementDraftItem.listByDraftIds([draft._id]);
+    if (!items.length) {
+      return res.status(422).json({ message: 'Draf tidak dapat disubmit karena belum ada item.' });
+    }
+
+    const submitted = await ProcurementDraft.submitDraft(draft._id);
+    return res.json({ message: 'Draf berhasil disubmit dan dikunci.', draft: submitted });
   } catch (error) {
     return next(error);
   }
@@ -138,7 +143,7 @@ exports.storeItem = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Draf yang sudah di-submit tidak dapat diubah.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit dan tidak dapat diubah.' });
     }
 
     const { item_type, name, price, quantity, purchase_link, replacement_inventory_id } = req.body;
@@ -177,7 +182,7 @@ exports.updateItem = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Draf yang sudah di-submit tidak dapat diubah.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit dan tidak dapat diubah.' });
     }
 
     const item = await ProcurementDraftItem.findById(req.params.itemId);
@@ -217,7 +222,7 @@ exports.destroyItem = async (req, res, next) => {
     }
 
     if (draft.status !== 'draft') {
-      return res.status(422).json({ message: 'Draf yang sudah di-submit tidak dapat diubah.' });
+      return res.status(422).json({ message: 'Draf sudah disubmit dan tidak dapat diubah.' });
     }
 
     const item = await ProcurementDraftItem.findById(req.params.itemId);

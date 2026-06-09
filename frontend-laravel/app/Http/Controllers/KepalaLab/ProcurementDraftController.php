@@ -99,7 +99,7 @@ class ProcurementDraftController extends Controller
 
         return $this->backWithApiResult(
             $this->api($api)->patch("/kepala-lab/procurement-drafts/{$id}/submit"),
-            'Draf berhasil di-submit.',
+            'Draf berhasil disubmit. Draf sekarang terkunci dan akan diproses oleh Kaprodi.',
         );
     }
 

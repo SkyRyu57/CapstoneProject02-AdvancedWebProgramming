@@ -28,6 +28,22 @@ class MaintenanceController extends Controller
         ]);
     }
 
+    public function show(BackendApi $api, int $id)
+    {
+        if ($redirect = $this->ensureRole('staf_lab')) {
+            return $redirect;
+        }
+
+        $response = $this->api($api)->get("/staf-lab/maintenance/{$id}");
+
+        return view('staf-lab.maintenance-show', [
+            'user' => session('auth_user'),
+            'log' => $response->json('log'),
+            'usages' => $response->json('usages', []),
+            'error' => $response->successful() ? null : $response->json('message', 'Log maintenance tidak ditemukan.'),
+        ]);
+    }
+
     public function store(Request $request, BackendApi $api)
     {
         if ($redirect = $this->ensureRole('staf_lab')) {

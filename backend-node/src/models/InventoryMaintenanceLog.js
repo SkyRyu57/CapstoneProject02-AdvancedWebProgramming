@@ -20,6 +20,10 @@ class InventoryMaintenanceLog extends BaseModel {
     );
   }
 
+  static findById(id) {
+    return this.findOne({ _id: Number(id) });
+  }
+
   static createLog(data) {
     return this.create({
       inventory_item_id: Number(data.inventory_item_id),

@@ -16,37 +16,50 @@
             @if ($error)
                 <div class="notice danger">{{ $error }}</div>
             @elseif ($draft)
+                @php
+                    $isDraft = $draft['status'] === 'draft';
+                    $statusLabel = match($draft['status']) {
+                        'draft'     => '✏️ Draft – Belum disubmit',
+                        'submitted' => '📤 Terkirim – Menunggu review Kaprodi',
+                        'finalized' => '✅ Difinalisasi oleh Kaprodi',
+                        default     => $draft['status'],
+                    };
+                    $statusClass = match($draft['status']) {
+                        'draft'     => 'status-pill--warning',
+                        'submitted' => 'status-pill--info',
+                        'finalized' => 'status-pill--locked',
+                        default     => '',
+                    };
+                @endphp
+
                 {{-- Info draf & form edit --}}
                 <section class="form-card">
                     <div class="panel-header">
                         <div>
                             <h2>Informasi Draf</h2>
                             <p class="panel-subtitle">
-                                @php
-                                    $statusLabels = [
-                                        'draft' => 'Draf',
-                                        'submitted' => 'Diajukan',
-                                        'finalized' => 'Difinalisasi'
-                                    ];
-                                    $statusLabel = $statusLabels[$draft['status']] ?? ucfirst($draft['status']);
-                                @endphp
                                 Tahun {{ $draft['fiscal_year'] }} &middot;
-                                Status <strong>{{ $statusLabel }}</strong>
-                                @if ($draft['locked'])
-                                    &middot; <span class="status-pill status-pill--locked">🔒 Terkunci</span>
-                                @endif
+                                <span class="status-pill {{ $statusClass }}">{{ $statusLabel }}</span>
                             </p>
                         </div>
-                        @if ($draft['status'] === 'draft')
-                            <form method="POST" action="{{ route('kepala-lab.drafts.submit', $draft['_id']) }}" onsubmit="return confirm('Apakah Anda yakin ingin men-submit draf ini? Setelah di-submit, draf tidak dapat diubah lagi.');">
+
+                        {{-- Submit button – only when status is draft and has items --}}
+                        @if ($isDraft && count($draft['items'] ?? []) > 0)
+                            <form method="POST"
+                                action="{{ route('kepala-lab.drafts.submit', $draft['_id']) }}"
+                                onsubmit="return confirm('Submit draf ini? Setelah disubmit, draf tidak dapat diubah lagi.')">
                                 @csrf
                                 @method('PATCH')
-                                <button class="button-primary">Submit Draf</button>
+                                <button class="button-primary submit-draft-btn">
+                                    📤 Submit Draf
+                                </button>
                             </form>
+                        @elseif ($isDraft)
+                            <p class="notice warning" style="margin:0">Tambahkan minimal 1 item sebelum submit.</p>
                         @endif
                     </div>
 
-                    @if (!$draft['locked'])
+                    @if ($isDraft)
                         <form method="POST" action="{{ route('kepala-lab.drafts.update', $draft['_id']) }}"
                             class="form-grid">
                             @csrf
@@ -69,12 +82,23 @@
 
                 {{-- Tabel item --}}
                 <section class="data-panel section-gap">
-                    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div class="panel-header">
                         <h2>Daftar Item Pengadaan</h2>
-                        <input type="text" id="item-search" class="input" placeholder="Cari barang, tipe, link..." style="max-width: 300px;">
                     </div>
 
-                    @if (!$draft['locked'])
+                    @if (!$isDraft)
+                        @foreach ($draft['items'] as $item)
+                            <form id="item-update-{{ $item['_id'] }}"
+                                method="POST"
+                                action="{{ route('kepala-lab.drafts.items.update', [$draft['_id'], $item['_id']]) }}"
+                                hidden>
+                                @csrf
+                                @method('PATCH')
+                            </form>
+                        @endforeach
+                    @endif
+
+                    @if ($isDraft)
                         @foreach ($draft['items'] as $item)
                             <form id="item-update-{{ $item['_id'] }}"
                                 method="POST"
@@ -96,7 +120,7 @@
                                     <th>Link Pembelian</th>
                                     <th>Barang Digantikan</th>
                                     <th>Status</th>
-                                    @if (!$draft['locked'])
+                                    @if ($isDraft)
                                         <th>Aksi</th>
                                     @endif
                                 </tr>
@@ -107,8 +131,8 @@
                                         $replacedName = collect($inventories)
                                             ->firstWhere('_id', $item['replacement_inventory_id'] ?? null)['name'] ?? '-';
                                     @endphp
-                                    <tr class="item-row" data-search="{{ strtolower($item['name'] . ' ' . $item['item_type'] . ' ' . ($item['purchase_link'] ?? '') . ' ' . $replacedName . ' ' . $item['approval_status']) }}">
-                                        @if ($draft['locked'])
+                                    <tr>
+                                        @if (!$isDraft)
                                             <td><strong>{{ $item['name'] }}</strong></td>
                                             <td><span class="status-pill">{{ $item['item_type'] }}</span></td>
                                             <td>Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
@@ -121,15 +145,7 @@
                                                 @endif
                                             </td>
                                             <td>{{ $replacedName }}</td>
-                                            @php
-                                                $approvalLabels = [
-                                                    'pending' => 'Pending',
-                                                    'approved' => 'Disetujui',
-                                                    'rejected' => 'Ditolak'
-                                                ];
-                                                $approvalLabel = $approvalLabels[$item['approval_status']] ?? ucfirst($item['approval_status']);
-                                            @endphp
-                                            <td><span class="status-pill">{{ $approvalLabel }}</span></td>
+                                            <td><span class="status-pill">{{ $item['approval_status'] }}</span></td>
                                         @else
                                             <td>
                                                 <input form="item-update-{{ $item['_id'] }}"
@@ -185,15 +201,7 @@
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            @php
-                                                $approvalLabels = [
-                                                    'pending' => 'Pending',
-                                                    'approved' => 'Disetujui',
-                                                    'rejected' => 'Ditolak'
-                                                ];
-                                                $approvalLabel = $approvalLabels[$item['approval_status']] ?? ucfirst($item['approval_status']);
-                                            @endphp
-                                            <td><span class="status-pill">{{ $approvalLabel }}</span></td>
+                                            <td><span class="status-pill">{{ $item['approval_status'] }}</span></td>
                                             <td>
                                                 <div class="action-cell">
                                                     <button form="item-update-{{ $item['_id'] }}"
@@ -213,7 +221,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $draft['locked'] ? 7 : 8 }}" class="empty-cell">
+                                        <td colspan="{{ $isDraft ? 8 : 7 }}" class="empty-cell">
                                             Belum ada item. Tambahkan item di bawah.
                                         </td>
                                     </tr>
@@ -223,8 +231,8 @@
                     </div>
                 </section>
 
-                {{-- Form tambah item (hanya jika tidak locked) --}}
-                @if (!$draft['locked'])
+                {{-- Form tambah item (hanya jika status draft) --}}
+                @if ($isDraft)
                     <section class="form-card section-gap">
                         <h2>Tambah Item Baru</h2>
                         <form method="POST"
@@ -279,17 +287,4 @@
             @endif
         </main>
     </div>
-
-    <script>
-        const itemSearch = document.getElementById('item-search');
-        if (itemSearch) {
-            itemSearch.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                document.querySelectorAll('.item-row').forEach(row => {
-                    const text = row.dataset.search || '';
-                    row.style.display = text.includes(query) ? '' : 'none';
-                });
-            });
-        }
-    </script>
 </x-layouts.app>

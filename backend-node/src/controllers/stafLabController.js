@@ -81,6 +81,43 @@ exports.maintenanceLogs = async (req, res, next) => {
   }
 };
 
+// GET /api/staf-lab/maintenance/:id
+exports.maintenanceLogDetail = async (req, res, next) => {
+  try {
+    const log = await InventoryMaintenanceLog.findById(Number(req.params.id));
+
+    if (!log) {
+      return res.status(404).json({ message: 'Log maintenance tidak ditemukan.' });
+    }
+
+    const [inventories, consumables, usages] = await Promise.all([
+      Inventory.listForStafLab(),
+      Consumable.listAll(),
+      MaintenanceConsumableUsage.listByMaintenanceLog(log._id),
+    ]);
+
+    // Enrich usages with consumable names
+    const enrichedUsages = usages.map((u) => ({
+      ...u,
+      consumable_name: consumables.find((c) => c._id === u.consumable_id)?.name || `BHP #${u.consumable_id}`,
+      consumable_unit: consumables.find((c) => c._id === u.consumable_id)?.unit || '',
+    }));
+
+    const inventory = inventories.find((i) => i._id === log.inventory_item_id);
+
+    return res.json({
+      log: {
+        ...log,
+        inventory_name: inventory?.name || `Inventaris #${log.inventory_item_id}`,
+        inventory_label: inventory?.label_code || '',
+      },
+      usages: enrichedUsages,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // POST /api/staf-lab/maintenance
 exports.storeMaintenance = async (req, res, next) => {
   try {

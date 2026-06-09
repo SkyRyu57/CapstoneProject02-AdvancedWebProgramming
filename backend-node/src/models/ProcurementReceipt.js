@@ -5,7 +5,7 @@ class ProcurementReceipt extends BaseModel {
     return 'procurement_receipts';
   }
 
-  static listRecent(limit = 6) {
+  static listRecent(limit = 100) {
     return this.findMany({}, { sort: { received_date: -1 }, limit });
   }
 
@@ -17,6 +17,28 @@ class ProcurementReceipt extends BaseModel {
       staf_admin_id: Number(data.staf_admin_id),
       notes: data.notes || '',
     });
+  }
+
+  /**
+   * Return { [draft_item_id]: totalQuantityReceived } map for a list of item IDs.
+   */
+  static async sumByDraftItemIds(itemIds) {
+    if (!itemIds.length) return {};
+
+    const rows = await this.aggregate([
+      { $match: { draft_item_id: { $in: itemIds.map(Number) } } },
+      {
+        $group: {
+          _id: '$draft_item_id',
+          total: { $sum: '$quantity' },
+        },
+      },
+    ]);
+
+    return rows.reduce((acc, row) => {
+      acc[row._id] = row.total;
+      return acc;
+    }, {});
   }
 }
 
