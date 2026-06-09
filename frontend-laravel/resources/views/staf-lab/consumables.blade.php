@@ -22,9 +22,12 @@
 
             <section class="data-panel">
                 <div class="panel-header">
-                    <div>
-                        <h2>Daftar Barang Habis Pakai (BHP)</h2>
-                        <p class="panel-subtitle">Gunakan tombol (+) atau (−) untuk menyesuaikan stok.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h2>Daftar Barang Habis Pakai (BHP)</h2>
+                            <p class="panel-subtitle">Gunakan tombol (+) atau (−) untuk menyesuaikan stok.</p>
+                        </div>
+                        <input type="text" id="consumable-search" class="input" placeholder="Cari nama atau deskripsi..." style="max-width: 300px;">
                     </div>
                 </div>
                 <div class="table-wrap">
@@ -44,7 +47,7 @@
                                 @php
                                     $isLow = $bhp['stock'] <= $bhp['min_stock'];
                                 @endphp
-                                <tr>
+                                <tr class="consumable-row" data-search="{{ strtolower($bhp['name'] . ' ' . ($bhp['description'] ?? '')) }}">
                                     <td>
                                         <strong>{{ $bhp['name'] }}</strong>
                                         <div class="muted-link">{{ $bhp['description'] ?? '' }}</div>
@@ -90,4 +93,17 @@
             </section>
         </main>
     </div>
+
+    <script>
+        const consumableSearch = document.getElementById('consumable-search');
+        if (consumableSearch) {
+            consumableSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.consumable-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

@@ -46,8 +46,9 @@
             </section>
 
             <section class="data-panel section-gap">
-                <div class="panel-header">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <h2>Daftar Pengguna</h2>
+                    <input type="text" id="user-search" class="input" placeholder="Cari nama, email, atau role..." style="max-width: 300px;">
                 </div>
                 @foreach ($users as $account)
                     @php($accountId = $account['id'] ?? $account['_id'])
@@ -70,7 +71,7 @@
                         <tbody>
                             @foreach ($users as $account)
                                 @php($accountId = $account['id'] ?? $account['_id'])
-                                <tr>
+                                <tr class="user-row" data-search="{{ strtolower($account['name'] . ' ' . $account['email'] . ' ' . $account['role']) }}">
                                     <td><input form="user-update-{{ $accountId }}" class="input table-input" name="name" value="{{ $account['name'] }}" required></td>
                                     <td><input form="user-update-{{ $accountId }}" class="input table-input" name="email" type="email" value="{{ $account['email'] }}" required></td>
                                     <td>
@@ -99,4 +100,17 @@
             </section>
         </main>
     </div>
+
+    <script>
+        const userSearch = document.getElementById('user-search');
+        if (userSearch) {
+            userSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.user-row').forEach(row => {
+                    const text = row.dataset.search || '';
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </x-layouts.app>

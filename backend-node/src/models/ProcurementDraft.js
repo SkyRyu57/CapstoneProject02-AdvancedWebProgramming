@@ -78,6 +78,18 @@ class ProcurementDraft extends BaseModel {
     return this.deleteById(id);
   }
 
+  static async submitDraft(id) {
+    const draft = await this.findById(id);
+
+    if (!draft || draft.status !== 'draft') {
+      return null;
+    }
+
+    return this.updateById(id, {
+      status: 'submitted',
+    });
+  }
+
   static async finalize(id, reviewerId) {
     const draft = await this.findById(id);
 

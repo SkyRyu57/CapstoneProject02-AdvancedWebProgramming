@@ -26,6 +26,7 @@ Route::get('/forgot-account', [AuthController::class, 'showForgotAccount'])->nam
 Route::post('/forgot-account', [AuthController::class, 'forgotAccount'])->name('forgot-account.store');
 
 Route::get('/dashboard', DashboardController::class)->name('dashboard');
+Route::get('/inventories', \App\Http\Controllers\InventoryListController::class)->name('inventories.list');
 
 // Shared inventory list (all roles except admin)
 Route::get('/inventory-list', [InventoryListController::class, 'index'])->name('inventory-list.index');
@@ -63,6 +64,7 @@ Route::prefix('kepala-lab')->name('kepala-lab.')->group(function () {
     Route::patch('/procurement-drafts/{id}/submit', [ProcurementDraftController::class, 'submit'])->name('drafts.submit');
     Route::patch('/procurement-drafts/{id}', [ProcurementDraftController::class, 'update'])->name('drafts.update');
     Route::delete('/procurement-drafts/{id}', [ProcurementDraftController::class, 'destroy'])->name('drafts.destroy');
+    Route::patch('/procurement-drafts/{id}/submit', [ProcurementDraftController::class, 'submit'])->name('drafts.submit');
     Route::post('/procurement-drafts/{id}/items', [ProcurementDraftController::class, 'storeItem'])->name('drafts.items.store');
     Route::patch('/procurement-drafts/{id}/items/{itemId}', [ProcurementDraftController::class, 'updateItem'])->name('drafts.items.update');
     Route::delete('/procurement-drafts/{id}/items/{itemId}', [ProcurementDraftController::class, 'destroyItem'])->name('drafts.items.destroy');
