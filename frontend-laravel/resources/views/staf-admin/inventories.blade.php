@@ -64,16 +64,18 @@
                                         </td>
                                     <td>{{ $inventory['label_code'] ?? '-' }}</td>
                                     <td>
-                                        @if ($qrIsUploadedImage)
-                                            <div class="qr-chip">
-                                                <img src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="QR/Barcode {{ $inventory['name'] }}">
-                                                <span>Ada gambar</span>
-                                            </div>
-                                        @elseif (!empty($qrCode))
-                                            <span class="status-pill">{{ $qrCode }}</span>
-                                        @else
-                                            <span class="muted-link">Belum ada</span>
-                                        @endif
+                                        <div style="display: flex; gap: 8px;">
+                                            @php
+                                                $generatedQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=INV-" . $inventory['_id'];
+                                            @endphp
+                                            <img class="qr-mini" style="width: 32px; height: 32px;" src="{{ $generatedQrUrl }}" alt="System QR {{ $inventory['name'] }}" title="System QR">
+                                            
+                                            @if ($qrIsUploadedImage)
+                                                <img class="qr-mini" style="width: 32px; height: 32px;" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="Uploaded QR">
+                                            @elseif (!empty($qrCode) && !$qrIsUploadedImage)
+                                                <span class="status-pill" style="align-self: center; font-size: 10px;">{{ $qrCode }}</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>{{ $roomName }}</td>
                                     <td><span class="status-pill">{{ $inventory['condition'] ?? '-' }}</span></td>

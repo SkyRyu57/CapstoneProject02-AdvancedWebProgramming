@@ -86,14 +86,19 @@
                                         <td><span class="status-pill {{ $condClass }}">{{ ucfirst($inv['condition'] ?? '-') }}</span></td>
                                         <td><span class="status-pill {{ $statusClass }}">{{ ucfirst($inv['status'] ?? '-') }}</span></td>
                                         <td>
-                                            @if ($isUploaded)
-                                                <img class="qr-mini" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}"
-                                                    alt="Barcode {{ $inv['name'] }}" title="{{ $inv['name'] }}">
-                                            @elseif (!empty($qrCode))
-                                                <span class="status-pill">{{ $qrCode }}</span>
-                                            @else
-                                                <span class="muted-link">–</span>
-                                            @endif
+                                            <div style="display: flex; gap: 8px;">
+                                                @php
+                                                    $generatedQrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=INV-" . $inv['_id'];
+                                                @endphp
+                                                <img class="qr-mini" src="{{ $generatedQrUrl }}" alt="System QR {{ $inv['name'] }}" title="System QR (INV-{{ $inv['_id'] }})">
+                                                
+                                                @if ($isUploaded)
+                                                    <img class="qr-mini" src="{{ config('services.backend_api.asset_url', 'http://localhost:5000').$qrCode }}" alt="Uploaded QR {{ $inv['name'] }}" title="Uploaded QR">
+                                                @elseif (!empty($qrCode) && !$isUploaded)
+                                                    {{-- Some other string saved as QR --}}
+                                                    <span class="status-pill" style="align-self: center;">{{ $qrCode }}</span>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
